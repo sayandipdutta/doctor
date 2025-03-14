@@ -7,6 +7,12 @@ pub struct FileTree {
     pub path: PathBuf,
 }
 
+impl FileTree {
+    pub fn file_name_lossy(&self) -> Option<String> {
+        Some(self.path.file_name()?.to_string_lossy().into_owned())
+    }
+}
+
 impl TryFrom<PathBuf> for FileTree {
     type Error = io::Error;
 

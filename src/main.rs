@@ -19,3 +19,5 @@ fn main() -> io::Result<()> {
     println!("{}", serde_json::to_string_pretty(&tree)?);
     Ok(())
 }
+
+// doctor groupby -p "**/{k:batch}/{k:file}/Scan/{base}-{k:doctype}.{ext}" --aggregate first --key doctype
