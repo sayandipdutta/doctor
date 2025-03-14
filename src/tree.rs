@@ -17,29 +17,21 @@ impl TryFrom<PathBuf> for FileTree {
     type Error = io::Error;
 
     fn try_from(path: PathBuf) -> std::result::Result<Self, Self::Error> {
-        if path.is_symlink() {
+        if !path
+            .try_exists()
+            .expect("`clio` should guarantee path existence")
+        {
             return Err(io::Error::new(
                 io::ErrorKind::Unsupported,
-                format!("{path:?} is a symlink, it may lead to circular reference!"),
-            ));
-        }
-        if !path.exists() {
-            return Err(io::Error::new(
-                io::ErrorKind::NotFound,
-                format!("{path:?} not found!"),
+                format!("{path:?} is a broken symlink"),
             ));
         }
 
-        Ok(FileTree {
-            children: path.read_dir().map_or_else(
-                |_| Ok(Vec::new()),
-                |v| {
-                    v.filter_map(io::Result::ok)
-                        .map(|entry| FileTree::try_from(entry.path()))
-                        .collect::<io::Result<Vec<FileTree>>>()
-                },
-            )?,
-            path,
-        })
+        path.read_dir()
+            .map_or(Ok(vec![]), |v| {
+                v.filter_map(|entry| entry.map(|v| v.path().try_into()).ok())
+                    .collect()
+            })
+            .map(|children| FileTree { children, path })
     }
 }
