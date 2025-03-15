@@ -17,10 +17,7 @@ impl TryFrom<PathBuf> for FileTree {
     type Error = io::Error;
 
     fn try_from(path: PathBuf) -> std::result::Result<Self, Self::Error> {
-        if !path
-            .try_exists()
-            .expect("`clio` should guarantee path existence")
-        {
+        if !(path.try_exists())? {
             return Err(io::Error::new(
                 io::ErrorKind::Unsupported,
                 format!("{path:?} is a broken symlink"),
